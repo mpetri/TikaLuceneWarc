@@ -3,7 +3,7 @@
 # Installation
 
 ```
-git clone 
+git clone https://github.com/mpetri/TikaLuceneWarc.git
 mvn clean package appassembler:assemble
 ```
 
