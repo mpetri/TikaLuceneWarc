@@ -180,9 +180,10 @@ public final class TikaLuceneWarc {
 
               String warcId = header.getReaderIdentifier();
               document.add(new StringField(FIELD_ID, warcId, Field.Store.YES));
+              Long warcIdHash = (long) warcId.hashCode();
 
               Instant d = Instant.parse(date);
-              Long dateid = ((d.toEpochMilli() / 1000) << 30) + urlHash;
+              Long dateid = ((d.toEpochMilli() / 1000) << 30) + ((urlHash^warcIdHash)&0x7FFFFFFF);
               document.add(new LongField(FIELD_DATE, dateid, Field.Store.YES));
 
               // (5) add document content
@@ -495,7 +496,27 @@ public final class TikaLuceneWarc {
         docWarcIDs[i] = docWarcId;
         docUrls[i] = docRealURL;
         if (urlSorting) {
-          docMap.put(docURL + "-" + docDate, i);
+          String docKey = docURL + "-" + docDate;
+          if (docMap.containsKey(docKey)) {
+            int exist_id = docMap.get(docKey);
+            Document exist_doc = reader.document(exist_id);
+            String edocID = exist_doc.get(FIELD_ID);
+            LOG.error(
+                "Docmap already contains key "
+                    + docKey
+                    + " with value "
+                    + exist_id
+                    + " instead of "
+                    + i);
+            LOG.error(
+                "Docmap already contains key "
+                    + docKey
+                    + " with warcId "
+                    + docWarcId
+                    + " instead of "
+                    + edocID);
+          }
+          docMap.put(docKey, i);
         } else {
           if (docMap.containsKey(docDate)) {
             int exist_id = docMap.get(docDate);
@@ -688,7 +709,7 @@ public final class TikaLuceneWarc {
         BufferedOutputStream bwidfos = new BufferedOutputStream(widfos, 64 * 1024 * 1024);
         PrintStream widps = new PrintStream(bwidfos);
         for (int i = 0; i < (realnDocs); i++) {
-          widps.print(sortedDocWarcIDs[i]);
+          widps.print(sortedDocWarcIDs[i] + "\n");
         }
         widps.close();
 
@@ -699,7 +720,7 @@ public final class TikaLuceneWarc {
         BufferedOutputStream burlfos = new BufferedOutputStream(urlfos, 64 * 1024 * 1024);
         PrintStream urlps = new PrintStream(burlfos);
         for (int i = 0; i < (realnDocs); i++) {
-          urlps.print(sortedUrls[i]);
+          urlps.print(sortedUrls[i] + "\n");
         }
         urlps.close();
       }
