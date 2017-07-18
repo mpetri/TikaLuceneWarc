@@ -178,7 +178,7 @@ public final class TikaLuceneWarc {
               document.add(new StringField(FIELD_REALURL, realUrl, Field.Store.YES));
               Long urlHash = (long) url.hashCode();
 
-              String warcId = header.getReaderIdentifier();
+              String warcId = header.getHeaderValue("WARC-Record-ID").toString();
               document.add(new StringField(FIELD_ID, warcId, Field.Store.YES));
               Long warcIdHash = (long) warcId.hashCode();
 
@@ -201,13 +201,13 @@ public final class TikaLuceneWarc {
               docCount++;
             }
           } catch (TikaException e) {
-            System.err.println("TIKA " + url);
+            System.err.println("[FATAL] TIKA " + url + ":" + e.getMessage());
           } catch (IOException e) {
-            System.err.println("TIKA " + url);
+            System.err.println("[FATAL] IO " + url + ":" + e.getMessage());
           } catch (SAXException e) {
-            System.err.println("TIKA " + url);
+            System.err.println("[FATAL] SAX " + url + ":" + e.getMessage());
           } catch (Exception e) {
-            System.err.println("TIKA " + url);
+            System.err.println("[FATAL] Exception " + url + ":" + e.getMessage());
           }
         }
       } catch (FileNotFoundException e) {
