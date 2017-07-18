@@ -590,6 +590,10 @@ public final class TikaLuceneWarc {
         BufferedOutputStream bfreqsfos = new BufferedOutputStream(freqsfos, 128 * 1024 * 1024);
         DataOutputStream freqsdos = new DataOutputStream(bfreqsfos);
 
+        String termsFile = outputDir + "/" + baseName + ".terms";
+        FileOutputStream termsfos = new FileOutputStream(termsFile);
+        PrintWriter termsWriter = new PrintWriter(termsfos);
+
         int numTerms = 0;
         long numPostings = 0;
         int[] docSizes = new int[realnDocs];
@@ -606,6 +610,7 @@ public final class TikaLuceneWarc {
           }
           while (termIter.next() != null) {
             // for each posting
+            String termStr = termIter.term().utf8ToString();
             int ft = termIter.docFreq();
             writeInt(docsdos, ft, writePlain);
             writeInt(freqsdos, ft, writePlain);
@@ -641,7 +646,7 @@ public final class TikaLuceneWarc {
                 writeInt(possdos, posting.pos.get(i), writePlain);
               }
             }
-
+            termsWriter.println(termStr);
             numPostings += ft;
             numTerms++;
           }
@@ -653,6 +658,7 @@ public final class TikaLuceneWarc {
           }
           while (termIter.next() != null) {
             // for each posting
+            String termStr = termIter.term().utf8ToString();
             int ft = termIter.docFreq();
             writeInt(docsdos, ft, writePlain);
             writeInt(freqsdos, ft, writePlain);
@@ -681,6 +687,7 @@ public final class TikaLuceneWarc {
             }
             numPostings += ft;
             numTerms++;
+            termsWriter.println(termStr);
           }
         }
 
